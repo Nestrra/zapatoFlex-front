@@ -1,0 +1,8 @@
+export default function ProductsPage() {
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <h1 className="text-3xl font-bold text-neutral-900 mb-4">Productos</h1>
+      <p className="text-neutral-600">Catálogo de calzado (próximamente).</p>
+    </div>
+  )
+}
