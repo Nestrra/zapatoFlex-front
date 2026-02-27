@@ -1,4 +1,7 @@
-import { Outlet, Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
+import { fetchCart } from '../services/cart'
 
 function CartIcon() {
   return (
@@ -22,7 +25,53 @@ function CartIcon() {
   )
 }
 
+function LogoutIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="text-neutral-900"
+      aria-hidden
+    >
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
+    </svg>
+  )
+}
+
 export default function MainLayout() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { user, logout } = useAuth()
+  const [cartCount, setCartCount] = useState(0)
+
+  useEffect(() => {
+    if (!user) {
+      setCartCount(0)
+      return
+    }
+    fetchCart()
+      .then((cart) => setCartCount(cart.items?.length ?? 0))
+      .catch(() => setCartCount(0))
+  }, [user, location.pathname])
+
+  const handleLogout = () => {
+    logout()
+    navigate('/', { replace: true })
+  }
+
+  const displayName = user
+    ? [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email
+    : ''
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Barra principal */}
@@ -56,19 +105,44 @@ export default function MainLayout() {
               </Link>
             </nav>
             <div className="flex items-center gap-4 shrink-0">
-              <Link
-                to="/iniciar-sesion"
-                className="text-neutral-900 hover:text-neutral-600 transition-colors text-[15px]"
-              >
-                Iniciar sesión
-              </Link>
+              {user ? (
+                <span className="text-neutral-700 text-[15px]">
+                  Bienvenido, <span className="font-medium text-neutral-900">{displayName}</span>
+                </span>
+              ) : (
+                <Link
+                  to="/iniciar-sesion"
+                  className="text-neutral-900 hover:text-neutral-600 transition-colors text-[15px]"
+                >
+                  Iniciar sesión
+                </Link>
+              )}
               <Link
                 to="/carrito"
-                className="p-1 -m-1 rounded hover:bg-neutral-100 transition-colors"
-                aria-label="Ir al carrito"
+                className="relative p-1 -m-1 rounded hover:bg-neutral-100 transition-colors"
+                aria-label={cartCount > 0 ? `Ir al carrito (${cartCount} productos)` : 'Ir al carrito'}
               >
                 <CartIcon />
+                {cartCount > 0 && (
+                  <span
+                    className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center text-[11px] font-bold text-white bg-neutral-900 rounded-full"
+                    aria-hidden
+                  >
+                    {cartCount > 99 ? '99+' : cartCount}
+                  </span>
+                )}
               </Link>
+              {user && (
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="p-1.5 -m-1.5 rounded hover:bg-neutral-100 transition-colors"
+                  aria-label="Cerrar sesión"
+                  title="Cerrar sesión"
+                >
+                  <LogoutIcon />
+                </button>
+              )}
             </div>
           </div>
         </div>
