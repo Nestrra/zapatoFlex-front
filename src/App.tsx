@@ -3,7 +3,10 @@ import { Toaster } from 'sonner'
 import MainLayout from './layouts/MainLayout'
 import HomePage from './pages/HomePage'
 import ProductsPage from './pages/ProductsPage'
+import ProductDetailPage from './pages/ProductDetailPage'
 import CartPage from './pages/CartPage'
+import LoginPage from './pages/LoginPage'
+import TermsPage from './pages/TermsPage'
 import NotFoundPage from './pages/NotFoundPage'
 
 function App() {
@@ -14,7 +17,10 @@ function App() {
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/productos" element={<ProductsPage />} />
+          <Route path="/productos/:id" element={<ProductDetailPage />} />
           <Route path="/carrito" element={<CartPage />} />
+          <Route path="/iniciar-sesion" element={<LoginPage />} />
+          <Route path="/terminos" element={<TermsPage />} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
