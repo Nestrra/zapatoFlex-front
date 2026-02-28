@@ -63,3 +63,44 @@ export function clearAuth(): void {
   localStorage.removeItem(AUTH_STORAGE_KEY)
   localStorage.removeItem(USER_STORAGE_KEY)
 }
+
+/**
+ * Obtiene el perfil del usuario actual. GET /api/v1/auth/me
+ */
+export async function getMe(): Promise<User> {
+  const token = getStoredToken()
+  if (!token) throw new Error('No hay sesión iniciada')
+  const res = await fetch(`${API_BASE_URL}${API_PREFIX}/auth/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!res.ok) {
+    if (res.status === 401) throw new Error('Sesión inválida o expirada')
+    throw new Error('Error al cargar el perfil')
+  }
+  return res.json() as Promise<User>
+}
+
+export interface UpdateProfileData {
+  firstName?: string
+  lastName?: string
+  phone?: string | null
+  address?: string | null
+}
+
+/**
+ * Actualiza el perfil (dirección, teléfono, etc.). PATCH /api/v1/auth/me
+ */
+export async function updateProfile(data: UpdateProfileData): Promise<User> {
+  const token = getStoredToken()
+  if (!token) throw new Error('No hay sesión iniciada')
+  const res = await fetch(`${API_BASE_URL}${API_PREFIX}/auth/me`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) throw new Error('Error al actualizar el perfil')
+  return res.json() as Promise<User>
+}
