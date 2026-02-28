@@ -28,6 +28,33 @@ export async function fetchCart(): Promise<Cart> {
   return res.json() as Promise<Cart>
 }
 
+/**
+ * Añade un ítem al carrito. POST /api/v1/cart/items
+ * Body: { productId, size, quantity }. Devuelve el carrito actualizado.
+ */
+export async function addToCart(productId: number, size: string, quantity: number): Promise<Cart> {
+  const res = await fetch(`${API_BASE_URL}${API_PREFIX}/cart/items`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders(),
+    },
+    body: JSON.stringify({ productId, size, quantity }),
+  })
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    if (data.error === 'PRODUCT_NOT_FOUND') throw new Error('Producto no encontrado')
+    if (data.error === 'INSUFFICIENT_STOCK') {
+      throw new Error(`Stock insuficiente. Máximo disponible: ${data.available ?? '?'}`)
+    }
+    if (res.status === 401) throw new Error('Inicia sesión para agregar al carrito')
+    throw new Error('Error al agregar al carrito')
+  }
+
+  return res.json() as Promise<Cart>
+}
+
 function getAuthHeaders(): Record<string, string> {
   const token = getStoredToken()
   if (!token) throw new Error('No hay sesión iniciada')

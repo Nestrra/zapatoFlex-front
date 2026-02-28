@@ -1,11 +1,12 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
 import type { User } from '../types/auth'
-import { getStoredUser, setAuth, clearAuth } from '../services/auth'
+import { getStoredUser, getStoredToken, setAuth, clearAuth } from '../services/auth'
 
 interface AuthContextValue {
   user: User | null
   login: (token: string, user: User) => void
   logout: () => void
+  setUser: (user: User | null) => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -23,8 +24,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }, [])
 
+  const setUserFromContext = useCallback((next: User | null) => {
+    setUser(next)
+    if (next) {
+      const token = getStoredToken()
+      if (token) setAuth(token, next)
+    }
+  }, [])
+
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, setUser: setUserFromContext }}>
       {children}
     </AuthContext.Provider>
   )

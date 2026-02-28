@@ -48,7 +48,7 @@ export default function LoginPage() {
       const result = await loginApi({ email, password })
       setAuthState(result.token, result.user)
       toast.success(`Bienvenido, ${result.user.firstName || result.user.email}`)
-      navigate('/', { replace: true })
+      navigate(result.user.role === 'ADMIN' ? '/dashboard' : '/', { replace: true })
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al iniciar sesión'
       setErrors({ password: message })

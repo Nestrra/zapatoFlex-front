@@ -1,7 +1,32 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { fetchCart } from '../services/cart'
+import { useCart } from '../contexts/CartContext'
+
+function TruckIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="text-neutral-900"
+      aria-hidden
+    >
+      <path d="M5 18H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3" />
+      <path d="M19 18h2a2 2 0 0 0 2-2v-3.28a1 1 0 0 0-.684-.948l-1.923-.641a1 1 0 0 0-1.31.872L17 18" />
+      <path d="M14 6h4v8" />
+      <path d="M2 12h12" />
+      <circle cx="7" cy="18" r="2" />
+      <circle cx="17" cy="18" r="2" />
+    </svg>
+  )
+}
 
 function CartIcon() {
   return (
@@ -22,6 +47,32 @@ function CartIcon() {
       <line x1="3" y1="6" x2="21" y2="6" />
       <path d="M16 10a4 4 0 0 1-8 0" />
     </svg>
+  )
+}
+
+function NavCategoryLink({
+  to,
+  label,
+  currentCategory,
+  categoryValue,
+}: {
+  to: string
+  label: string
+  currentCategory: string | null
+  categoryValue: string
+}) {
+  const isActive = currentCategory === categoryValue
+  return (
+    <Link
+      to={to}
+      className={`text-[15px] transition-colors ${
+        isActive
+          ? 'font-semibold text-neutral-900'
+          : 'text-neutral-600 hover:text-neutral-900'
+      }`}
+    >
+      {label}
+    </Link>
   )
 }
 
@@ -51,17 +102,11 @@ export default function MainLayout() {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, logout } = useAuth()
-  const [cartCount, setCartCount] = useState(0)
+  const { cartCount, refreshCartCount } = useCart()
 
   useEffect(() => {
-    if (!user) {
-      setCartCount(0)
-      return
-    }
-    fetchCart()
-      .then((cart) => setCartCount(cart.items?.length ?? 0))
-      .catch(() => setCartCount(0))
-  }, [user, location.pathname])
+    refreshCartCount()
+  }, [location.pathname, refreshCartCount])
 
   const handleLogout = () => {
     logout()
@@ -85,24 +130,24 @@ export default function MainLayout() {
               ZapatoFlex
             </Link>
             <nav className="absolute left-1/2 -translate-x-1/2 flex items-center gap-8">
-              <Link
+              <NavCategoryLink
                 to="/productos?category=deportivo"
-                className="text-neutral-900 hover:text-neutral-600 transition-colors text-[15px]"
-              >
-                Deportivos
-              </Link>
-              <Link
+                label="Deportivos"
+                currentCategory={location.pathname === '/productos' ? new URLSearchParams(location.search).get('category') : null}
+                categoryValue="deportivo"
+              />
+              <NavCategoryLink
                 to="/productos?category=casual"
-                className="text-neutral-900 hover:text-neutral-600 transition-colors text-[15px]"
-              >
-                Casuales
-              </Link>
-              <Link
+                label="Casuales"
+                currentCategory={location.pathname === '/productos' ? new URLSearchParams(location.search).get('category') : null}
+                categoryValue="casual"
+              />
+              <NavCategoryLink
                 to="/productos?category=formal"
-                className="text-neutral-900 hover:text-neutral-600 transition-colors text-[15px]"
-              >
-                Formales
-              </Link>
+                label="Formales"
+                currentCategory={location.pathname === '/productos' ? new URLSearchParams(location.search).get('category') : null}
+                categoryValue="formal"
+              />
             </nav>
             <div className="flex items-center gap-4 shrink-0">
               {user ? (
@@ -117,6 +162,14 @@ export default function MainLayout() {
                   Iniciar sesión
                 </Link>
               )}
+              <Link
+                to="/pedidos"
+                className="p-1 -m-1 rounded hover:bg-neutral-100 transition-colors"
+                aria-label="Mis pedidos"
+                title="Mis pedidos"
+              >
+                <TruckIcon />
+              </Link>
               <Link
                 to="/carrito"
                 className="relative p-1 -m-1 rounded hover:bg-neutral-100 transition-colors"
