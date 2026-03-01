@@ -10,6 +10,52 @@ export interface LoginCredentials {
   password: string
 }
 
+export interface RegisterData {
+  email: string
+  password: string
+  firstName?: string
+  lastName?: string
+}
+
+export interface RegisterResponse {
+  success: true
+  user: User
+}
+
+/**
+ * Registro de usuario. POST /api/v1/auth/register
+ * No devuelve token; tras el registro hay que hacer login.
+ */
+export async function register(data: RegisterData): Promise<RegisterResponse> {
+  const url = `${API_BASE_URL}${API_PREFIX}/auth/register`
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email: data.email.trim(),
+      password: data.password,
+      firstName: (data.firstName ?? '').trim(),
+      lastName: (data.lastName ?? '').trim(),
+    }),
+  })
+
+  const body = await res.json().catch(() => ({ error: 'UNKNOWN_ERROR' }))
+
+  if (!res.ok) {
+    const message =
+      body.error === 'EMAIL_AND_PASSWORD_REQUIRED'
+        ? 'Email y contraseña son obligatorios'
+        : body.error === 'PASSWORD_TOO_SHORT'
+          ? 'La contraseña debe tener al menos 6 caracteres'
+          : body.error === 'EMAIL_ALREADY_EXISTS'
+            ? 'Ya existe una cuenta con este correo'
+            : 'Error al registrarse. Intenta de nuevo.'
+    throw new Error(message)
+  }
+
+  return body as RegisterResponse
+}
+
 /**
  * Inicia sesión. POST /api/v1/auth/login
  * Lanza si la respuesta no es OK (credenciales inválidas, red, etc.).
