@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
+import { useAuth } from '../contexts/AuthContext'
 import { fetchProducts } from '../services/products'
 import type { Product } from '../types/product'
 
@@ -20,40 +21,49 @@ function formatPrice(value: number): string {
   }).format(value)
 }
 
-function ProductCard({ product }: { product: Product }) {
+function ProductCard({ product, isAdmin }: { product: Product; isAdmin?: boolean }) {
   return (
-    <Link
-      to={`/productos/${product.id}`}
-      className="group block bg-white rounded-xl border border-neutral-200 overflow-hidden hover:border-neutral-300 hover:shadow-md transition-all"
-    >
-      <div className="aspect-square bg-neutral-100 flex items-center justify-center overflow-hidden">
-        {product.imageUrl ? (
-          <img
-            src={product.imageUrl}
-            alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-          />
-        ) : (
-          <span className="text-neutral-400 text-4xl">👟</span>
-        )}
-      </div>
-      <div className="p-4">
-        <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide mb-1">
-          {product.category}
-        </p>
-        <h2 className="font-semibold text-neutral-900 mb-1 line-clamp-2 group-hover:text-neutral-600">
-          {product.name}
-        </h2>
-        <p className="text-lg font-semibold text-neutral-900">
-          {formatPrice(product.price)}
-        </p>
-      </div>
-    </Link>
+    <div className="group relative bg-white rounded-xl border border-neutral-200 overflow-hidden hover:border-neutral-300 hover:shadow-md transition-all">
+      <Link to={`/productos/${product.id}`} className="block">
+        <div className="aspect-square bg-neutral-100 flex items-center justify-center overflow-hidden">
+          {product.imageUrl ? (
+            <img
+              src={product.imageUrl}
+              alt={product.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+            />
+          ) : (
+            <span className="text-neutral-400 text-4xl">👟</span>
+          )}
+        </div>
+        <div className="p-4">
+          <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide mb-1">
+            {product.category}
+          </p>
+          <h2 className="font-semibold text-neutral-900 mb-1 line-clamp-2 group-hover:text-neutral-600">
+            {product.name}
+          </h2>
+          <p className="text-lg font-semibold text-neutral-900">
+            {formatPrice(product.price)}
+          </p>
+        </div>
+      </Link>
+      {isAdmin && (
+        <Link
+          to={`/admin/productos/${product.id}/editar`}
+          className="absolute top-2 right-2 px-2 py-1 bg-white/90 hover:bg-white border border-neutral-200 rounded text-xs font-medium text-neutral-700 shadow-sm"
+          onClick={(e) => e.stopPropagation()}
+        >
+          Editar
+        </Link>
+      )}
+    </div>
   )
 }
 
 export default function ProductsPage() {
   const [searchParams] = useSearchParams()
+  const { user } = useAuth()
   const categoryParam = searchParams.get('category')?.toLowerCase() ?? ''
   const category = VALID_CATEGORIES.includes(categoryParam) ? categoryParam : undefined
 
@@ -103,7 +113,7 @@ export default function ProductsPage() {
       {!loading && !error && products.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
           {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard key={product.id} product={product} isAdmin={user?.role === 'ADMIN'} />
           ))}
         </div>
       )}
