@@ -162,29 +162,44 @@ export default function MainLayout() {
                   Iniciar sesión
                 </Link>
               )}
-              <Link
-                to="/pedidos"
-                className="p-1 -m-1 rounded hover:bg-neutral-100 transition-colors"
-                aria-label="Mis pedidos"
-                title="Mis pedidos"
-              >
-                <TruckIcon />
-              </Link>
-              <Link
-                to="/carrito"
-                className="relative p-1 -m-1 rounded hover:bg-neutral-100 transition-colors"
-                aria-label={cartCount > 0 ? `Ir al carrito (${cartCount} productos)` : 'Ir al carrito'}
-              >
-                <CartIcon />
-                {cartCount > 0 && (
-                  <span
-                    className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center text-[11px] font-bold text-white bg-neutral-900 rounded-full"
-                    aria-hidden
-                  >
-                    {cartCount > 99 ? '99+' : cartCount}
-                  </span>
-                )}
-              </Link>
+              {user?.role === 'ADMIN' ? (
+                <Link
+                  to="/dashboard"
+                  className="px-3 py-1.5 rounded-lg bg-neutral-900 text-white text-sm font-medium hover:bg-neutral-800 transition-colors"
+                >
+                  Panel admin
+                </Link>
+              ) : (
+                <>
+                  {user && (
+                    <Link
+                      to="/pedidos"
+                      className="p-1 -m-1 rounded hover:bg-neutral-100 transition-colors"
+                      aria-label="Mis pedidos"
+                      title="Mis pedidos"
+                    >
+                      <TruckIcon />
+                    </Link>
+                  )}
+                  {user && (
+                    <Link
+                      to="/carrito"
+                      className="relative p-1 -m-1 rounded hover:bg-neutral-100 transition-colors"
+                      aria-label={cartCount > 0 ? `Ir al carrito (${cartCount} productos)` : 'Ir al carrito'}
+                    >
+                      <CartIcon />
+                      {cartCount > 0 && (
+                        <span
+                          className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center text-[11px] font-bold text-white bg-neutral-900 rounded-full"
+                          aria-hidden
+                        >
+                          {cartCount > 99 ? '99+' : cartCount}
+                        </span>
+                      )}
+                    </Link>
+                  )}
+                </>
+              )}
               {user && (
                 <button
                   type="button"
@@ -207,12 +222,7 @@ export default function MainLayout() {
           <p className="text-neutral-900 text-sm font-medium">
             Envíos gratis por compras superiores a $299.900
           </p>
-          <Link
-            to="/terminos"
-            className="text-sm text-blue-600 underline hover:text-blue-700"
-          >
-            Términos y Condiciones
-          </Link>
+         
         </div>
       </div>
 

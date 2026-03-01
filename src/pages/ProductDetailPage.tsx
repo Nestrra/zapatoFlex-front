@@ -196,7 +196,15 @@ export default function ProductDetailPage() {
             </>
           )}
 
-          <div className="mt-8 pt-6 border-t border-neutral-200">
+          <div className="mt-8 pt-6 border-t border-neutral-200 flex flex-wrap items-center gap-4">
+            {user?.role === 'ADMIN' && (
+              <Link
+                to={`/admin/productos/${product.id}/editar`}
+                className="text-sm font-medium text-neutral-700 hover:text-neutral-900 underline"
+              >
+                Editar producto
+              </Link>
+            )}
             <Link to="/productos" className="text-neutral-600 hover:text-neutral-900">
               ← Volver a productos
             </Link>

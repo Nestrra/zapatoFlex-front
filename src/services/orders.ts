@@ -72,12 +72,18 @@ export async function fetchOrderById(id: string | number): Promise<OrderDetail |
 }
 
 /**
- * Lista todos los pedidos (solo ADMIN). GET /api/v1/admin/orders
+ * Lista todos los pedidos (solo ADMIN). GET /api/v1/admin/orders?limit=&offset=
  */
-export async function fetchAdminOrders(): Promise<Order[]> {
+export async function fetchAdminOrders(options?: {
+  limit?: number
+  offset?: number
+}): Promise<Order[]> {
   const token = getStoredToken()
   if (!token) throw new Error('No hay sesión iniciada')
-  const res = await fetch(`${API_BASE_URL}${API_PREFIX}/admin/orders`, {
+  const limit = Math.min(options?.limit ?? 50, 100)
+  const offset = Math.max(0, options?.offset ?? 0)
+  const url = `${API_BASE_URL}${API_PREFIX}/admin/orders?limit=${limit}&offset=${offset}`
+  const res = await fetch(url, {
     headers: { Authorization: `Bearer ${token}` },
   })
   if (!res.ok) {
@@ -87,6 +93,23 @@ export async function fetchAdminOrders(): Promise<Order[]> {
   }
   const data = (await res.json()) as OrdersResponse
   return data.orders ?? []
+}
+
+/**
+ * Detalle de un pedido (solo ADMIN). GET /api/v1/admin/orders/:id
+ */
+export async function fetchAdminOrderById(id: string | number): Promise<OrderDetail | null> {
+  const token = getStoredToken()
+  if (!token) throw new Error('No hay sesión iniciada')
+  const res = await fetch(`${API_BASE_URL}${API_PREFIX}/admin/orders/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!res.ok) {
+    if (res.status === 404) return null
+    if (res.status === 403) throw new Error('Acceso denegado')
+    throw new Error('Error al cargar el pedido')
+  }
+  return res.json() as Promise<OrderDetail>
 }
 
 const VALID_ORDER_STATUSES = ['PENDING', 'CONFIRMED', 'PREPARING', 'SHIPPED', 'DELIVERED', 'CANCELLED'] as const
